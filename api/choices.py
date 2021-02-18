@@ -1,0 +1,1 @@
+User_type = [('AD','Admin'),('SA','Super Admin'),('EM','Employee'),('MN','Manager')]
