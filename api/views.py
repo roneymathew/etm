@@ -145,58 +145,55 @@ def create_task(request):
 @permission_classes([IsAuthenticated])
 def EditTask(request):
     if request.method == 'POST':
-        if request.user.user_type == 'SF':
-            if request.data.get("task_id",None):
-                if Tasks.objects.filter(id = request.data["task_id"] , createdby = request.user).exists():
-                    flag = False
-                    msg = "Nothing was updated"
-                    task_obj = task.objects.filter(id = request.data["task_id"] , teacher = request.user)
-                    if request.data.get("start_time",None) or request.data.get("end_time",None):
-                        if request.data.get("start_time",None) and request.data.get("end_time",None):
-                            start_time = datetime.datetime.strptime(request.data["start_time"], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo = None)
-                            end_time = datetime.datetime.strptime(request.data["end_time"], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo = None)
-                            if end_time > start_time:
-                                task_obj.start_time = start_time
-                                task_obj.end_time = end_time
-                                flag = True
-                            else:
-                                msg = "start_time  ahead of ending time"
-                        elif request.data.get("start_time",None):
-                            start_time = datetime.datetime.strptime(request.data["start_time"], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo = None)
-                            if task_obj.end_time:
-                                if task_obj.end_time.replace(tzinfo = None) > start_time:
-                                    task_obj.start_time = start_time
-                                    flag = True
-                                else:
-                                    msg = "start_time was bigger than ending time"
-                            else:
-                                task_obj.start_time = start_time
-                                flag = True
+        if request.data.get("task_id",None):
+            if Tasks.objects.filter(id = request.data["task_id"] , createdby = request.user).exists():
+                flag = False
+                msg = "Nothing was updated"
+                task_obj = task.objects.filter(id = request.data["task_id"] , teacher = request.user)
+                if request.data.get("start_time",None) or request.data.get("end_time",None):
+                    if request.data.get("start_time",None) and request.data.get("end_time",None):
+                        start_time = datetime.datetime.strptime(request.data["start_time"], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo = None)
+                        end_time = datetime.datetime.strptime(request.data["end_time"], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo = None)
+                        if end_time > start_time:
+                            task_obj.start_time = start_time
+                            task_obj.end_time = end_time
+                            flag = True
                         else:
-                            end_time = datetime.datetime.strptime(request.data["end_time"], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo = None)
-                            if task_obj.start_time:
-                                if end_time > task_obj.start_time.replace(tzinfo = None):
-                                    task_obj.end_time = end_time
-                                    flag = True
-                                else:
-                                    msg = "start_time was bigger than ending time"
+                            msg = "start_time  ahead of ending time"
+                    elif request.data.get("start_time",None):
+                        start_time = datetime.datetime.strptime(request.data["start_time"], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo = None)
+                        if task_obj.end_time:
+                            if task_obj.end_time.replace(tzinfo = None) > start_time:
+                                task_obj.start_time = start_time
+                                flag = True
                             else:
+                                msg = "start_time was bigger than ending time"
+                        else:
+                            task_obj.start_time = start_time
+                            flag = True
+                    else:
+                        end_time = datetime.datetime.strptime(request.data["end_time"], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo = None)
+                        if task_obj.start_time:
+                            if end_time > task_obj.start_time.replace(tzinfo = None):
                                 task_obj.end_time = end_time
                                 flag = True
-                    if request.data.get("note",None):
-                        task_obj.note = request.data["note"]
-                        flag = True
-                    if flag:
-                        task_obj.save()
-                        return Response("Task updated",status = status.HTTP_200_OK)
-                    else:
-                        return Response(msg,status = status.HTTP_400_BAD_REQUEST)
+                            else:
+                                msg = "start_time was bigger than ending time"
+                        else:
+                            task_obj.end_time = end_time
+                            flag = True
+                if request.data.get("note",None):
+                    task_obj.note = request.data["note"]
+                    flag = True
+                if flag:
+                    task_obj.save()
+                    return Response("Task updated",status = status.HTTP_200_OK)
                 else:
-                    return Response('Invalid task id',status = status.HTTP_400_BAD_REQUEST)
+                    return Response(msg,status = status.HTTP_400_BAD_REQUEST)
             else:
-                return Response('Must provide task id',status = status.HTTP_400_BAD_REQUEST)
+                return Response('Invalid task id',status = status.HTTP_400_BAD_REQUEST)
         else:
-            return Response('Permission denied',status = status.HTTP_400_BAD_REQUEST)
+            return Response('Must provide task id',status = status.HTTP_400_BAD_REQUEST)
     else:
         return Response('Methord not accepted',status = status.HTTP_400_BAD_REQUEST)
 
@@ -300,11 +297,22 @@ def EditReview(request):
 @permission_classes([IsAuthenticated])
 def DeleteReview(request):
     if request.data.get("review_id",None):
-        if Tasks.objects.filter(id = request.data["review_id"] , createdby = request.user).exists():
-            task_obj = Tasks.objects.filter(id = request.data["review_id"] , createdby = request.user).delete()
-            return Response("task deleteed",status = status.HTTP_200_OK)
+        if Reviews.objects.filter(id = request.data["review_id"] , createdby = request.user).exists():
+            task_obj = Reviews.objects.filter(id = request.data["review_id"] , createdby = request.user).delete()
+            return Response("Review deleteed",status = status.HTTP_200_OK)
         else:
-            return Response("permission denied",status = status.HTTP_400_BAD_REQUEST)
+            return Response("Invalid id",status = status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response('Must provide review id',status = status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def ReviewList(request):
+    if request.data.get("task_id",None):
+        if Reviews.objects.filter(task_id = request.data["task_id"]).exists():
+            data = Reviews.objects.filter(task_id = request.data["task_id"]).values()
+            return Response(data)
+        else:
+            return Response("Invalid task id",status = status.HTTP_400_BAD_REQUEST)
     else:
         return Response('Must provide task id',status = status.HTTP_400_BAD_REQUEST)
-

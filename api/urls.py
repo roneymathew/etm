@@ -23,7 +23,8 @@ urlpatterns = [
     url('notification_list/',views.NotificationList),
     url('create_review/',views.create_review),
     url('edit_review/',views.EditReview),
-    url('delete_task/',views.DeleteReview),
+    url('delete_review/',views.DeleteReview),
+    url('review_list/',views.ReviewList),
     path('token/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
